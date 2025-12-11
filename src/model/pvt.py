@@ -30,7 +30,7 @@ def get_resnet34(pretrained=True):
     net = torchvision.models.resnet34(pretrained=False)
     if pretrained:
         # state_dict = torch.load(model_path['resnet34'], map_location=torch.device("cuda:0"))
-        state_dict = torch.load(model_path['resnet34'])
+        state_dict = torch.load(model_path['resnet34'], weights_only=False)
         net.load_state_dict(state_dict)
 
     return net
