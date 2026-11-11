@@ -5,8 +5,6 @@ from functools import partial
 import torchvision
 
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
-from mmseg.utils import get_root_logger
-from mmcv.runner import load_checkpoint
 from resnet_cbam import BasicBlock
 from pathlib import Path
 
@@ -240,6 +238,12 @@ class PyramidVisionTransformer(nn.Module):
 
     def init_weights(self, pretrained=None):
         if isinstance(pretrained, str):
+            # Imported here rather than at module scope: this is their only use,
+            # mmcv 1.x does not build against a current torch, and inference
+            # never takes this branch -- backbone.py passes a Path, not a str.
+            from mmcv.runner import load_checkpoint
+            from mmseg.utils import get_root_logger
+
             logger = get_root_logger()
             logger.setLevel('ERROR')
             load_checkpoint(self, pretrained, map_location='cpu', strict=False, logger=logger)
