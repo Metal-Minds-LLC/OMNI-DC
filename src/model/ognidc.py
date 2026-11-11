@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -62,9 +63,17 @@ class OGNIDC(nn.Module, PyTorchModelHubMixin):
         if self.args.load_dav2:
 
             self.depth_module = DepthAnythingV2(**dav2_model_configs[encoder])
-            self.depth_module.load_state_dict(
-                torch.load(f'./depth_models/depth_anything_v2/checkpoints/depth_anything_v2_{encoder}.pth',
-                           map_location='cpu'))
+            # Relative to the working directory, so it only resolves when run
+            # from `src/`; OMNIDC_DAV2_CHECKPOINT names the file instead. As with
+            # the ResNet above, an inference run restores all of these weights
+            # from the OGNIDC checkpoint, so a missing file is not an error --
+            # it saves downloading 1.3 GB that is immediately overwritten.
+            dav2_checkpoint = os.environ.get(
+                'OMNIDC_DAV2_CHECKPOINT',
+                f'./depth_models/depth_anything_v2/checkpoints/depth_anything_v2_{encoder}.pth')
+            if os.path.isfile(dav2_checkpoint):
+                self.depth_module.load_state_dict(
+                    torch.load(dav2_checkpoint, map_location='cpu', weights_only=False))
             self.depth_module = self.depth_module.eval()
 
             # freeze foundation model

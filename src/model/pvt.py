@@ -28,7 +28,10 @@ def get_resnet18(pretrained=True):
 
 def get_resnet34(pretrained=True):
     net = torchvision.models.resnet34(pretrained=False)
-    if pretrained:
+    # An inference run restores every one of these weights from the OGNIDC
+    # checkpoint, so it has no use for the ImageNet file and should not have to
+    # carry one. Training still loads it when it is there.
+    if pretrained and model_path['resnet34'].is_file():
         # state_dict = torch.load(model_path['resnet34'], map_location=torch.device("cuda:0"))
         state_dict = torch.load(model_path['resnet34'], weights_only=False)
         net.load_state_dict(state_dict)
